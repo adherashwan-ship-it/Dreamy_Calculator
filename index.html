@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dreamy Calculator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00f0ff;
+            --accent: #ff00d4;
+            --destructive: #ff4a4a;
+            --neon-green: #39ff14;
+            --neon-gold: #ffd700;
+            --neon-blue: #00d4ff;
+            --neon-purple: #a64dff;
+            --neon-pink: #ff4da6;
+            --dark-primary: #1a1a2e;
+            --dark-secondary: #26263f;
+            --dark-tertiary: #333354;
+            --foreground: #fff;
+            --border: #555;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Orbitron', monospace;
+            background: var(--dark-primary);
+            color: var(--foreground);
+        }
+
+        header {
+            background: linear-gradient(90deg, var(--accent), var(--primary));
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-text {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        nav button {
+            margin-left: 1rem;
+            padding: 0.5rem 1rem;
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            color: var(--foreground);
+            cursor: pointer;
+            font-family: 'Orbitron', monospace;
+        }
+
+        nav button:hover {
+            background: var(--accent);
+            border-color: var(--primary);
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            padding: 2rem;
+        }
+
+        .calculator-panel {
+            background: rgba(26, 26, 46, 0.8);
+            padding: 2rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(15px);
+        }
+
+        .display {
+            background: rgba(0,0,0,0.3);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .expression {
+            font-size: 1rem;
+            color: hsl(194 100% 50% / 0.6);
+            min-height: 1.5rem;
+        }
+
+        .result {
+            font-size: 2rem;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--neon-green);
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+        }
+
+        .key, .sci-key {
+            padding: 1rem;
+            background: rgba(0,0,0,0.3);
+            border: none;
+            border-radius: 0.75rem;
+            color: var(--foreground);
+            font-size: 1.125rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .key:hover, .sci-key:hover {
+            background: rgba(0,0,0,0.5);
+            transform: scale(1.05);
+        }
+
+        .mode-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .mode-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            background: var(--dark-tertiary);
+            color: var(--foreground);
+            font-family: 'Orbitron', monospace;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(45deg, var(--accent), var(--primary));
+            color: white;
+        }
+
+        .hidden { display: none; }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .ad-banner {
+            background: rgba(26,26,46,0.4);
+            backdrop-filter: blur(15px);
+            border-radius: 1rem;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .ad-banner button {
+            margin-top: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        footer {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            padding: 2rem;
+            background: var(--dark-tertiary);
+        }
+
+        footer button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border);
+            background: var(--dark-secondary);
+            cursor: pointer;
+            color: var(--foreground);
+        }
+
+        footer button:hover {
+            background: var(--accent);
+            border-color: var(--primary);
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top:0; left:0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--dark-primary);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: var(--foreground);
+            cursor: pointer;
+        }
+
+        @media(max-width:768px){
+            .calculator-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-text"><i class="fas fa-calculator"></i> Dreamy Calculator</div>
+    </header>
+
+    <main class="calculator-grid">
+        <!-- Calculator Panel -->
+        <div class="calculator-panel">
+            <div class="mode-buttons">
+                <button class="mode-btn active" data-mode="basic" onclick="switchMode('basic')">Basic</button>
+                <button class="mode-btn" data-mode="scientific" onclick="switchMode('scientific')">Scientific</button>
+                <button class="mode-btn" data-mode="financial" onclick="switchMode('financial')">Financial</button>
+                <button class="mode-btn" data-mode="converter" onclick="switchMode('converter')">Converter</button>
+            </div>
+
+            <div class="display">
+                <div class="expression" id="expression"></div>
+                <div class="result">
+                    <span id="result">0</span>
+                    <button class="copy-btn" onclick="copyResult()"><i class="fas fa-copy"></i></button>
+                </div>
+            </div>
+
+            <div class="keypad" id="basic-keypad">
+                <button class="key clear" onclick="clearAll()">AC</button>
+                <button class="key number" onclick="backspace()">⌫</button>
+                <button class="key operator" onclick="inputOperation('/')">÷</button>
+                
+                <button class="key number" onclick="inputNumber('7')">7</button>
+                <button class="key number" onclick="inputNumber('8')">8</button>
+                <button class="key number" onclick="inputNumber('9')">9</button>
+                <button class="key operator" onclick="inputOperation('*')">×</button>
+                
+                <button class="key number" onclick="inputNumber('4')">4</button>
+                <button class="key number" onclick="inputNumber('5')">5</button>
+                <button class="key number" onclick="inputNumber('6')">6</button>
+                <button class="key operator" onclick="inputOperation('-')">−</button>
+                
+                <button class="key number" onclick="inputNumber('1')">1</button>
+                <button class="key number" onclick="inputNumber('2')">2</button>
+                <button class="key number" onclick="inputNumber('3')">3</button>
+                <button class="key operator" onclick="inputOperation('+')">+</button>
+                
+                <button class="key number zero" onclick="inputNumber('0')">0</button>
+                <button class="key number" onclick="inputDecimal()">.</button>
+                <button class="key equals" onclick="calculate()">=</button>
+            </div>
+
+            <!-- Scientific Functions -->
+            <div class="scientific-functions hidden" id="scientific-functions" style="margin-top:1rem;">
+                <button class="sci-key" onclick="scientificFunction('sin')">sin</button>
+                <button class="sci-key" onclick="scientificFunction('cos')">cos</button>
+                <button class="sci-key" onclick="scientificFunction('tan')">tan</button>
+                <button class="sci-key" onclick="scientificFunction('log')">log</button>
+                <button class="sci-key" onclick="scientificFunction('ln')">ln</button>
+                <button class="sci-key" onclick="scientificFunction('sqrt')">√</button>
+                <button class="sci-key" onclick="scientificFunction('pow')">x²</button>
+                <button class="sci-key" onclick="scientificFunction('factorial')">x!</button>
+                <button class="sci-key" onclick="scientificFunction('pi')">π</button>
+                <button class="sci-key" onclick="scientificFunction('e')">e</button>
+            </div>
+
+            <!-- Financial Functions -->
+            <div class="hidden" id="financial-functions" style="margin-top:1rem;">
+                <button class="sci-key" onclick="financialFunction('simple_interest')">Simple Interest</button>
+                <button class="sci-key" onclick="financialFunction('compound_interest')">Compound Interest</button>
+                <button class="sci-key" onclick="financialFunction('loan_payment')">Loan Payment</button>
+            </div>
+
+            <!-- Converter Functions -->
+            <div class="hidden" id="converter-functions" style="margin-top:1rem;">
+                <button class="sci-key" onclick="converterFunction('length')">Length</button>
+                <button class="sci-key" onclick="converterFunction('weight')">Weight</button>
+                <button class="sci-key" onclick="converterFunction('temperature')">Temperature</button>
+            </div>
+
+        </div>
+
+        <!-- Sidebar Ads -->
+        <div class="sidebar">
+            <div class="ad-banner">
+                <div style="color: var(--neon-gold); font-weight: 700;">🚀 CodeMaster Pro</div>
+                <div style="font-size: 0.875rem;">Advanced coding tools & tutorials</div>
+                <button style="background: var(--neon-blue); color:white;">Learn More</button>
+            </div>
+
+            <div class="ad-banner">
+                <div style="color: orange; font-weight: 700;">🎯 TaskFlow Manager</div>
+                <div style="font-size: 0.875rem;">Boost your productivity 10x</div>
+                <button style="background: orange; color:white;">Get Started</button>
+            </div>
+        </div>
+
+    </main>
+
+    <footer>
+        <button onclick="openModal('privacy')">Privacy Policy</button>
+        <button onclick="openModal('about')">About Us</button>
+    </footer>
+
+    <!-- Privacy/ About Modals -->
+    <div class="modal" id="privacy-modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('privacy')"><i class="fas fa-times"></i></button>
+            <h2>Privacy Policy</h2>
+            <p>Your privacy is important. We do not store personal data. All calculations are performed locally in your browser.</p>
+        </div>
+    </div>
+
+    <div class="modal" id="about-modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('about')"><i class="fas fa-times"></i></button>
+            <h2>About Us</h2>
+            <p>Dreamy Calculator is a free, futuristic calculator designed to provide both basic and advanced calculations with a stylish UI. Developed with love for productivity enthusiasts.</p>
+        </div>
+    </div>
+
+    <script>
+        let calculatorState = {
+            display: '0',
+            expression: '',
+            previousValue: null,
+            operation: null,
+            waitingForNext: false,
+            mode: 'basic'
+        };
+
+        const expressionEl = document.getElementById('expression');
+        const resultEl = document.getElementById('result');
+
+        function updateDisplay(){
+            expressionEl.textContent = calculatorState.expression;
+            resultEl.textContent = calculatorState.display;
+        }
+
+        function inputNumber(num){
+            if(calculatorState.waitingForNext){
+                calculatorState.display=num;
+                calculatorState.waitingForNext=false;
+                calculatorState.expression+=num;
+            } else {
+                calculatorState.display=calculatorState.display==='0'?num:calculatorState.display+num;
+                calculatorState.expression+=num;
+            }
+            updateDisplay();
+        }
+
+        function inputDecimal(){
+            if(calculatorState.waitingForNext){
+                calculatorState.display='0.';
+                calculatorState.waitingForNext=false;
+                calculatorState.expression+='0.';
+            } else if(!calculatorState.display.includes('.')){
+                calculatorState.display+='.';
+                calculatorState.expression+='.';
+            }
+            updateDisplay();
+        }
+
+        function inputOperation(op){
+            const displayOp = op==='*'?'×':op==='/'?'÷':op==='-'?'−':op;
+            calculatorState.operation=op;
+            calculatorState.previousValue=parseFloat(calculatorState.display);
+            calculatorState.waitingForNext=true;
+            calculatorState.expression+=` ${displayOp} `;
+            updateDisplay();
+        }
+
+        function calculate(){
+            try{
+                const expr=calculatorState.expression.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-');
+                const result=new Function('return '+expr)();
+                calculatorState.display=result.toString();
+                calculatorState.expression='';
+                updateDisplay();
+            } catch{
+                calculatorState.display='Error';
+                calculatorState.expression='';
+                updateDisplay();
+            }
+        }
+
+        function clearAll(){
+            calculatorState.display='0';
+            calculatorState.expression='';
+            calculatorState.previousValue=null;
+            calculatorState.operation=null;
+            calculatorState.waitingForNext=false;
+            updateDisplay();
+        }
+
+        function backspace(){
+            if(calculatorState.display==='0' || calculatorState.display==='Error') return;
+            calculatorState.display=calculatorState.display.slice(0,-1)||'0';
+            calculatorState.expression=calculatorState.expression.slice(0,-1);
+            updateDisplay();
+        }
+
+        function scientificFunction(func){
+            const value=parseFloat(calculatorState.display);
+            let result;
+            try{
+                switch(func){
+                    case 'sin': result=Math.sin(value*Math.PI/180); break;
+                    case 'cos': result=Math.cos(value*Math.PI/180); break;
+                    case 'tan': result=Math.tan(value*Math.PI/180); break;
+                    case 'log': result=Math.log10(value); break;
+                    case 'ln': result=Math.log(value); break;
+                    case 'sqrt': result=Math.sqrt(value); break;
+                    case 'pow': result=Math.pow(value,2); break;
+                    case 'factorial': result=factorial(value); break;
+                    case 'pi': result=Math.PI; break;
+                    case 'e': result=Math.E; break;
+                }
+                calculatorState.display=result.toString();
+                calculatorState.expression='';
+                updateDisplay();
+            } catch{
+                calculatorState.display='Error';
+                updateDisplay();
+            }
+        }
+
+        function factorial(n){
+            if(n<0 || !Number.isInteger(n)) throw 'Invalid';
+            let res=1;
+            for(let i=2;i<=n;i++) res*=i;
+            return res;
+        }
+
+        function financialFunction(type){
+            alert(type + ' - Feature coming soon!');
+        }
+
+        function converterFunction(type){
+            alert(type + ' - Feature coming soon!');
+        }
+
+        function switchMode(mode){
+            calculatorState.mode=mode;
+            clearAll();
+            document.querySelectorAll('.mode-btn').forEach(btn=>btn.classList.remove('active'));
+            document.querySelector(`.mode-btn[data-mode="${mode}"]`).classList.add('active');
+
+            document.getElementById('scientific-functions').classList.toggle('hidden', mode!=='scientific');
+            document.getElementById('financial-functions').classList.toggle('hidden', mode!=='financial');
+            document.getElementById('converter-functions').classList.toggle('hidden', mode!=='converter');
+        }
+
+        function copyResult(){
+            navigator.clipboard.writeText(calculatorState.display).then(()=>alert('Copied!'));
+        }
+
+        document.addEventListener('keydown', (event)=>{
+            const key=event.key;
+            if(/[0-9]/.test(key)) inputNumber(key);
+            else if(key==='.') inputDecimal();
+            else if(['+','-','*','/'].includes(key)) inputOperation(key);
+            else if(key==='Enter') calculate();
+            else if(key==='Backspace') backspace();
+            else if(key==='Escape') clearAll();
+        });
+
+        function openModal(type){
+            document.getElementById(type+'-modal').classList.add('show');
+        }
+
+        function closeModal(type){
+            document.getElementById(type+'-modal').classList.remove('show');
+        }
+
+        // Close modal on outside click
+        document.querySelectorAll('.modal').forEach(modal=>{
+            modal.addEventListener('click', e=>{
+                if(e.target===modal) modal.classList.remove('show');
+            });
+        });
+
+        updateDisplay();
+    </script>
+
+</body>
+</html>
